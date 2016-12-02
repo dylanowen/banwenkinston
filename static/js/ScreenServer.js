@@ -1,21 +1,9 @@
-function getWebSocketBase() {
-    const loc = window.location;
-    const path = loc.pathname.substring(0, loc.pathname.lastIndexOf('/'))
-    let protocol;
-    if (loc.protocol === "https:") {
-        protocol = "wss:";
-    } else {
-        protocol = "ws:";
-    }
-    return protocol + "//" + loc.host + path + "/";
-}
-
-let _socket = Symbol("socket");
-let _clients = Symbol("clients");
-let _heartbeatsMissed = Symbol("heartbeatsMissed");
-let _heartbeatTimeoutId = Symbol("heartbeatTimeoutId");
-let _shutdown = Symbol("shutdown");
-let _afterShutdown = Symbol("afterShutdown");
+const _socket = Symbol("socket");
+const _clients = Symbol("clients");
+const _heartbeatsMissed = Symbol("heartbeatsMissed");
+const _heartbeatTimeoutId = Symbol("heartbeatTimeoutId");
+const _shutdown = Symbol("shutdown");
+const _afterShutdown = Symbol("afterShutdown");
 class ScreenServer {
   constructor() {
     this[_socket] = null;
@@ -29,21 +17,32 @@ class ScreenServer {
   start() {
     if (!this[_socket]) {
       this[_socket] = new WebSocket(getWebSocketBase() + 'ws?type=server');
+      this[_clients] = new Set();
+      this[_heartbeatsMissed] = 0;
+      this[_heartbeatTimeoutId] = null;
 
       // Start listening for events
       this[_socket].onmessage = (event) => {
-        let packet = event.data;
-        if (packet.type == "from_client") {
-          let client = packet.client;
-          var message = packet.message;
+        const packet = JSON.parse(event.data);
+        if (packet.type == "fromClient") {
+          const client = packet.client;
+          const message = packet.message;
           if (message.type == "connect") {
-            this.clients.add(client);
+            this[_clients].add(client);
             this.onClientConnect(client);
           } else if (message.type == "disconnect") {
-            this.onClientDisconnect(client);
-            this.clients.remove(client);
+            if (this[_clients].contains(client)) {
+              this.onClientDisconnect(client);
+              this[_clients].remove(client);
+            } else {
+              console.error("Can not disconnect {" + client + "}, not currently connected");
+            }
           } else if (message.type == "input") {
-            this.onInput(client, message);
+            if (this[_clients].contains(client)) {
+              this.onInput(client, message);
+            } else {
+              console.error("Client {" + client + "} attempted to send input but has not connected");
+            }
           } else {
             console.error("Invalid message received:");
             console.error(message);
@@ -66,16 +65,16 @@ class ScreenServer {
         this[_afterShutdown]();
       }
 
-      let heartbeatFunction = () => {
+      const heartbeatFunction = () => {
         this[_heartbeatsMissed]++;
         if (this[_heartbeatsMissed] > this.heartbeatTolerance || this[_socket] == null) {
           console.error(this.heartbeatTolerance + " heartbeats missed, stopping server");
           this[_shutdown]();
         } else {
           console.log("Sending heartbeat");
-          let heartbeatMessage = this.heartbeat();
+          const heartbeatMessage = this.heartbeat();
           this[_socket].send(new Packet({type: "heartbeat", message: heartbeatMessage}));
-          this[_heartbeatTimeoutId] = setTimeout(this.heartbeatInterval, heartbeatFunction);
+          this[_heartbeatTimeoutId] = setTimeout(heartbeatFunction, this.heartbeatInterval);
         }
       }
 
@@ -106,7 +105,8 @@ class ScreenServer {
     if (this[_socket] != null) {
       console.log("Stopping ScreenServer");
 
-      // TODO: notify router & clients that screen has stopped
+      // TODO: this will eventually notify clients it has sent
+      this[_socket].send(new Packet({type: "stopped"}))
 
       this[_shutdown]();
     }
@@ -114,7 +114,7 @@ class ScreenServer {
 
   // Sends a message to a specific client
   sendMessage(client, message) {
-    this[_socket].send({client, message});
+    this[_socket].send(new Packet({type: "toClient", client, message}));
   }
 
 
@@ -132,15 +132,11 @@ class ScreenServer {
   onInput(client, input) {
   }
 
-  onTick() {
-  }
-
   // Implement to handle remote server shutdown (should not be called manually)
   onShutdown() {
   }
 
-  /* Should return some information about the ScreenServer, by default returns true to indicate that
-    the server is still active */
+  // Should return some information about the ScreenServer, default returns true to indicate an active server
   heartbeat() {
     return true;
   }
