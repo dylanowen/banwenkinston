@@ -131,6 +131,9 @@ var snakeCanvas = {
 
   addSnake: function(snake){
     this.snakes.set(snake.type, snake);
+    if((this.snakes.keys.length / 2) > this.apples.keys.length){
+      this.addApple();
+    }
   },
 
   removeSnake: function(oldSnake){
@@ -167,6 +170,9 @@ var snakeCanvas = {
 
   eatApple(pixel){
     this.apples.delete(Apple.getID(pixel));
-    this.addApple();
+    if((this.snakes.keys.length / 2) >= this.apples.keys.length ||
+        this.apples.keys.length == 0) {
+        this.addApple();
+      }
   }
 }

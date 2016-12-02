@@ -7,8 +7,9 @@ var DIRECTION_MAPPING = {
 
 let queue = new SnakeQueue();
 let server = new SnakeServer();
-// TODO: fix
+
 server.heartbeatTolerance = 1000;
+
 var images = new Object();
 
 var init = function(){
@@ -35,6 +36,7 @@ var init = function(){
   images["up"] = goblind;
   images["apple"] = guac;
 
+	uiIds = images.keys;
   var imagesLoaded = 0;
 
   var waitforload = function(images){
@@ -42,6 +44,7 @@ var init = function(){
     if(imagesLoaded == Object.keys(images).length){
       snakeCanvas.executeNTimesPerSecond(advanceGame, 5);
 			server.start();
+
     }
   }
 

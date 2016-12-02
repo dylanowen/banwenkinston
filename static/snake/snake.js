@@ -1,4 +1,4 @@
-let uiIds = ["up", "down", "right", "left"];
+let uiIds = new Array();
 class Snake {
   constructor( x, y, id){
     this.pixels = [];
@@ -26,6 +26,8 @@ class Snake {
         this.grow();
       }else{
         snakeCanvas.removeSnake(this);
+        this.releaseID();
+        queue.addPlayer(this.type);
         return;
       }
     }

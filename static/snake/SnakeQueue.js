@@ -2,11 +2,14 @@ class SnakeQueue{
 
   constructor(){
     this.players = new Array();
-    this.delay = 5 ;
+    this.delay = 0 ;
   }
 
   addPlayer(client){
     this.players.push(client);
+    if(this.delay == 0){
+      this.delay = 25;
+    }
   }
 
   checkQueue(){
@@ -23,6 +26,8 @@ class SnakeQueue{
 
   removePlayer(client){
     let index = this.players.getIndexOf(client);
-    this.players.splice(index,1);
+    if(index && index >= 0){
+      this.players.splice(index,1);
+    }
   }
 }
