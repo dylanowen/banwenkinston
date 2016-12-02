@@ -48,7 +48,11 @@ class ScreenServer {
               console.error("Client {" + client + "} attempted to send input but has not connected");
             }
           }
-        } else if (packet._type == Packet.PING) {
+        } else if (packet._type == 'welcome') {
+          this.onWelcome(packet.id)
+        } else if (packet._type == 'clientConnect') {
+          console.log(packet)
+        }else if (packet._type == Packet.PING) {
           console.log("Received ping:");
           console.log(packet.message);
           this[_socket].send(JSON.stringify(packet));
@@ -122,6 +126,10 @@ class ScreenServer {
 
 
   /****** VIRTUAL METHODS ******/
+
+  onWelcome(serverId) {
+  }
+
 
   // Implement to handle client connections (should not be called manually)
   onClientConnect(client) {
