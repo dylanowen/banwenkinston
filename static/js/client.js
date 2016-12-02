@@ -5,6 +5,7 @@ initializeAllListeners();
 // TODO: what is the server ID? what about client ID?
 //const socket = new WebSocket(getWebSocketBase() + 'ws?type=client&serverId=server_1');
 
+
 // initialize button listeners for click, click-like, and keypress events
 function initializeAllListeners() {
   // listen to arrow keys and wasd
@@ -32,15 +33,15 @@ function sendThingToTheSocketThing(message) {
   // socket.send(message);
 }
 
-// TODO: use the method in common.js
-function getWebSocketBase() {
-    const loc = window.location;
-    const path = loc.pathname.substring(0, loc.pathname.lastIndexOf('/'))
-    let protocol;
-    if (loc.protocol === "https:") {
-        protocol = "wss:";
-    } else {
-        protocol = "ws:";
-    }
-    return protocol + "//" + loc.host + "/";
-}
+//// TODO: use the method in common.js
+//function getWebSocketBase() {
+//    const loc = window.location;
+//    const path = loc.pathname.substring(0, loc.pathname.lastIndexOf('/'))
+//    let protocol;
+//    if (loc.protocol === "https:") {
+//        protocol = "wss:";
+//    } else {
+//        protocol = "ws:";
+//    }
+//    return protocol + "//" + loc.host + "/";
+//}

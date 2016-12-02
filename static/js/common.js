@@ -7,5 +7,5 @@ function getWebSocketBase() {
     } else {
         protocol = "ws:";
     }
-    return protocol + "//" + loc.host + path + "/";
+    return protocol + "//" + loc.host + "/";
 }
