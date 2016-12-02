@@ -24,7 +24,7 @@ class ScreenServer {
       // Start listening for events
       this[_socket].onmessage = (event) => {
         const packet = JSON.parse(event.data);
-        if (packet.type == "fromClient") {
+        if (packet.type == Packet.FROM_CLIENT) {
           const client = packet.client;
           const message = packet.message;
           if (message.type == "connect") {
@@ -47,11 +47,11 @@ class ScreenServer {
             console.error("Invalid message received:");
             console.error(message);
           }
-        } else if (packet.type == "ping") {
+        } else if (packet.type == Packet.PING) {
           console.log("Received ping:");
           console.log(packet.message);
           this[_socket].send(packet);
-        } else if (packet.type == "heartbeat") {
+        } else if (packet.type == Packet.HEARTBEAT) {
           console.log("Received heartbeat");
           this[_heartbeatsMissed] = 0;
         } else {
@@ -73,7 +73,7 @@ class ScreenServer {
         } else {
           console.log("Sending heartbeat");
           const heartbeatMessage = this.heartbeat();
-          this[_socket].send(new Packet({type: "heartbeat", message: heartbeatMessage}));
+          this[_socket].send(new Packet({type: Packet.HEARTBEAT, message: heartbeatMessage}));
           this[_heartbeatTimeoutId] = setTimeout(heartbeatFunction, this.heartbeatInterval);
         }
       }
@@ -106,7 +106,7 @@ class ScreenServer {
       console.log("Stopping ScreenServer");
 
       // TODO: this will eventually notify clients it has sent
-      this[_socket].send(new Packet({type: "stopped"}))
+      this[_socket].send(new Packet({type: Packet.STOP}))
 
       this[_shutdown]();
     }
@@ -114,7 +114,7 @@ class ScreenServer {
 
   // Sends a message to a specific client
   sendMessage(client, message) {
-    this[_socket].send(new Packet({type: "toClient", client, message}));
+    this[_socket].send(new Packet({type: Packet.TO_CLIENT, client, message}));
   }
 
 
