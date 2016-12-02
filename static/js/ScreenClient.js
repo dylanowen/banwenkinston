@@ -1,13 +1,15 @@
 class ScreenClient {
-  constructor(server) {
-    this.socket = new WebSocket(getWebSocketBase() + 'ws?type=client&serverId=server_1');
+  constructor(serverId, userId) {
+    this.server = serverId;
+    this.user = userId;
   }
 
-  connect(user) {
-    this.user = user;
-
-    let packet = new Packet({type: Packet.FROM_CLIENT, client: user, message: new Message("connect")});
-    this.socket.send(JSON.stringify(packet));
+  connect() {
+    this.socket = new WebSocket(getWebSocketBase() + 'ws?type=client&serverId=' + serverId);
+    this.socket.onopen = () => {
+      let packet = new Packet({type: Packet.FROM_CLIENT, client: this.user, message: new Message("connect")});
+      this.socket.send(JSON.stringify(packet));
+    };
   }
 
   disconnect() {

@@ -1,8 +1,17 @@
 const buttonClickEventNames = ["mousedown", "touchstart"];
 const eventMap = new Map();
 
+// get the server and user IDs from the query parameters
+// TODO: I'm sure they will actually be there some day.
+const serverId = getUrlParameter("server");
+const userId = getUrlParameter("user");
+// set up the screen client and open the websocket
+const screenClient = new ScreenClient(serverId, userId);
+screenClient.connect();
+// prepare the key/click mappings and listeners tied to the websocket
 initializeEventMap();
 initializeAllListeners();
+
 // TODO: what is the server ID? what about client ID?
 //const socket = new WebSocket(getWebSocketBase() + 'ws?type=client&serverId=server_1');
 
@@ -48,11 +57,18 @@ function initializeAllListeners() {
   }
 }
 
-function sendThingToTheSocketThing(message) {
-  console.log("message contents:" + message);
-  // TODO: compose the thing into the proper format and send it
-  // socket.send(message);
+function sendThingToTheSocketThing(direction) {
+  console.log("sending message:" + direction);
+  let inputMessage = new InputMessage(direction);
+  screenClient.send(inputMessage);
 }
+
+function getUrlParameter(name) {
+  name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+  var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+  var results = regex.exec(location.search);
+  return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+};
 
 //// TODO: use the method in common.js
 //function getWebSocketBase() {
