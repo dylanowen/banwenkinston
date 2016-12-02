@@ -1,10 +1,12 @@
+let uiIds = ["up", "down", "right", "left"];
 class Snake {
-  constructor( x, y, image){
+  constructor( x, y, id){
     this.pixels = [];
-    this.type = image;
+    this.type = id;
+    this.id = uiIds.pop();
     this.length = 5;
     for (var i = this.length-1; i >= 0; i--){
-      this.pixels.push(new Pixel(x + i, y, image));
+      this.pixels.push(new Pixel(x + i, y, this.id));
     }
     this.delay = 0;
     this.direction = DIRECTION_MAPPING["right"];
@@ -18,7 +20,7 @@ class Snake {
     var newSegment = new Pixel(newX, newY, oldSegment.type);
 
     var col = snakeCanvas.detectCollision(newSegment);
-    
+
     if(col){
       if(col == "apple"){
         this.grow();
@@ -55,5 +57,12 @@ class Snake {
       snakeCanvas.draw(this.pixels);
   }
 
-}
+  releaseID(){
+    uiIds.push(this.id);
+  }
 
+  static addNewSnake(client){
+    let location = snakeCanvas.randomEmptyLocation();
+    snakeCanvas.addSnake(new Snake(location.x, location.y, client));
+  }
+}

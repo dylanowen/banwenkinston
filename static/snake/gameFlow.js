@@ -2,9 +2,10 @@ var DIRECTION_MAPPING = {
 	"right": {dx:1, dy:0, opp:"left", name: "right"},
 	"left": {dx:-1, dy:0, opp:"right", name: "left"},
 	"up": {dx:0, dy:-1, opp:"down", name: "up"},
-	"down": {dx:0, dy:1, opp:"up", name: "down"}	
+	"down": {dx:0, dy:1, opp:"up", name: "down"}
 }
 
+let queue = new SnakeQueue();
 var images = new Object();
 
 var init = function(){
@@ -56,6 +57,7 @@ var advanceGame = function() {
     value.moveSnake();
   });
   snakeCanvas.drawApples();
+	queue.checkQueue();
 }
 
 var react = function(direction){
@@ -72,7 +74,6 @@ document.addEventListener('keydown', function(e) {
       }
     });
 
-snakeCanvas.addSnake(new Snake(0,5,"right"));
+queue.addPlayer("amir");
 snakeCanvas.addApple();
 var delay = 0;
-
