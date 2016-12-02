@@ -16,6 +16,7 @@ class PokerServer extends ScreenServer{
     board.appendChild(div)
 
     players[client] = {
+      wrapper: div,
       count: 0,
       countElmnt: count
     }
@@ -26,8 +27,23 @@ class PokerServer extends ScreenServer{
   }
 
   onInput(client, input) {
+    console.log(input)
+
     const player = players[client]
-    player.count++
+
+    if (input.direction == 'up') {
+      player.count++
+    }
+    else if (input.direction == 'down') {
+      player.count--
+    }
+    else if (input.direction == 'left') {
+      player.wrapper.style.backgroundColor = 'white'
+    }
+    else if (input.direction == 'right') {
+      player.wrapper.style.backgroundColor = 'green'
+    }
+
     player.countElmnt.textContent = player.count
   }
 
