@@ -38,7 +38,7 @@ object Main {
         parameters("type" ! "client", "serverId") { (serverId) =>
           val maybeServer: Option[Server] = Server.get(serverId)
           if (maybeServer.isDefined) {
-            handleWebSocketMessages(ClientGraph.create(maybeServer.get))
+            handleWebSocketMessages(Client.create(maybeServer.get))
           }
           else {
             complete(notFound)

@@ -10,11 +10,16 @@ import akka.stream.scaladsl.{Flow, Keep, MergeHub, Sink, Source}
   * @author dylan.owen
   * @since Dec-2016
   */
-object ClientGraph {
+object Client {
   def create(server: Server)(implicit materializer: Materializer): Flow[Message, Message, Any] = {
     val sink = server.sink
 
-    Flow.fromSinkAndSource(sink, Source.empty)
+    Flow[Message].map((msg) => {
+      println(msg)
+      Source.single(msg).runWith(sink)
+
+      msg
+    })//.via(Flow.fromSinkAndSource(sink, Source.single(TextMessage("oh shit what up"))))
   }
   /*
     Flow[Message].mapConcat({
