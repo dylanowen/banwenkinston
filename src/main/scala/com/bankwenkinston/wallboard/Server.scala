@@ -3,19 +3,16 @@ package com.bankwenkinston.wallboard
 import java.util.concurrent.atomic.AtomicInteger
 
 import akka.NotUsed
-import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
+import akka.http.scaladsl.model.ws.Message
 import akka.stream.Fusing.FusedGraph
+import akka.stream.scaladsl.{Flow, MergeHub, Sink, Source, _}
 import akka.stream.{FlowShape, Fusing, Materializer}
-import akka.stream.scaladsl.{Flow, Keep, MergeHub, Sink, Source, _}
 import com.bankwenkinston.wallboard.Connection.Welcome
 import com.bankwenkinston.wallboard.JsonUtils._
 import org.json4s._
-import org.json4s.native.JsonMethods._
 
 import scala.collection.concurrent.TrieMap
-import scala.concurrent.Future
 import scala.language.higherKinds
-import scala.util.Try
 
 /**
   * TODO add description
