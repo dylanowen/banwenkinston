@@ -11,7 +11,7 @@ class ScreenServer {
     this[_heartbeatsMissed] = 0;
     this[_heartbeatTimeoutId] = null;
     this.heartbeatInterval = 5000;
-    this.heartbeatTolerance = 3;
+    this.heartbeatTolerance = 300000;
   }
 
   start() {
@@ -101,7 +101,7 @@ class ScreenServer {
 
   [_afterShutdown]() {
     if (this[_socket] != null) {
-      this[_socket] = null;
+      this[_socket] = null; 
       if (this[_heartbeatTimeoutId]) {
         clearTimeout(this[_heartbeatTimeoutId]);
       }
