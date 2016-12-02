@@ -1,3 +1,5 @@
+const DELAY = 10;
+
 class SnakeQueue{
 
   constructor(){
@@ -8,7 +10,7 @@ class SnakeQueue{
   addPlayer(client){
     this.players.push(client);
     if(this.delay == 0){
-      this.delay = 25;
+      this.delay = DELAY;
     }
   }
 
@@ -18,7 +20,7 @@ class SnakeQueue{
         if(uiIds.length != 0 ){
           let player = this.players.pop();
           Snake.addNewSnake(player);
-          this.delay= 25;
+          this.delay= DELAY;
         }
       }
     } else if(this.delay > 0) {

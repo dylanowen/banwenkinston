@@ -1,4 +1,9 @@
 class SnakeServer extends ScreenServer{
+
+  constructor() {
+    super();
+  }
+
   onClientConnect(client) {
     queue.addPlayer(client);
   }

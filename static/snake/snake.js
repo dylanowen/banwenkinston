@@ -2,22 +2,27 @@ let uiIds = new Array();
 let colors = ["red", "blue", "green", "yellow", "orange", "white", "purple"];
 class Snake {
   constructor( x, y, id){
+    console.log("New snake at: " + x + ", " + y);
     this.pixels = [];
     this.type = id;
     this.id = uiIds.pop();
     this.color = colors.pop();
-    this.length = 5;
-    for (var i = this.length-1; i >= 0; i--){
+    this.length = 1;
+    this.grow();
+    this.pixels.push(new Pixel(x, y, this.id));
+    /*for (var i = this.length-1; i >= 0; i--){
       this.pixels.push(new Pixel(x + i, y, this.id));
-    }
-    this.delay = 0;
+    }*/
+    //this.delay = 0;
     this.direction = DIRECTION_MAPPING["right"];
   }
 
   moveSnake() {
     var oldSegment = this.pixels[0];
+    // JS does not know how to modulo negative numbers so prevent this by adding gameWidth or gameHeight
     var newX = (snakeCanvas.gameWidth() + oldSegment.x + this.direction.dx) %  snakeCanvas.gameWidth();
     var newY = (snakeCanvas.gameHeight() + oldSegment.y + this.direction.dy) % snakeCanvas.gameHeight();
+    console.log("SnakePos: " + newX + ", "+ newY)
 
     var newSegment = new Pixel(newX, newY, oldSegment.type);
 

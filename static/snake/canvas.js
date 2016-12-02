@@ -1,3 +1,5 @@
+const size = 800
+
 var snakeCanvas = {
   canvasWidth: 800,
   canvasHeight: 600,
@@ -75,7 +77,7 @@ var snakeCanvas = {
   drawPixel: function(color, pixel) {
     snakeCanvas.canvas().fillStyle = color;
     var translatedPixel = snakeCanvas.translatePixel(pixel);
-    snakeCanvas.context.fillRect(translatedPixel.x, translatedPixel.y, snakeCanvas.pixelSize - 1, snakeCanvas.pixelSize - 1);
+    snakeCanvas.context.fillRect(translatedPixel.x + 1, translatedPixel.y + 1, snakeCanvas.pixelSize - 2, snakeCanvas.pixelSize - 2);
   },
 
   translatePixel: function(pixel) {
@@ -93,8 +95,8 @@ var snakeCanvas = {
 
   randomLocation: function() {
     return {
-      y: Math.floor(Math.random()*snakeCanvas.gameHeight()),
-      x: Math.floor(Math.random()*snakeCanvas.gameWidth()),
+      y: Math.floor(Math.random()*snakeCanvas.gameHeight() - 2) + 1,
+      x: Math.floor(Math.random()*snakeCanvas.gameWidth() - 2) + 1,
     }
   },
 
@@ -102,6 +104,7 @@ var snakeCanvas = {
     var locationfound = false;
     while(!locationfound){
       var location = this.randomLocation();
+      console.log(location);
       if(!this.grid.hasOwnProperty(location.x) || !this.grid[location.x][location.y]){
         return location;
       }
@@ -153,7 +156,8 @@ var snakeCanvas = {
 
   removePixel: function(pixel) {
   	if(this.grid.hasOwnProperty(pixel.x)){
-  		delete this.grid[pixel.x][pixel.y];
+      this.grid[pixel.x][pixel.y] = undefined;
+  		//delete this.grid[pixel.x][pixel.y];
   	}
   },
 
@@ -165,7 +169,7 @@ var snakeCanvas = {
       return this.grid[pixel.x][pixel.y];
     }
 
-    return NaN;
+    return undefined;
   },
 
   eatApple(pixel){
