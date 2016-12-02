@@ -6,6 +6,9 @@ var DIRECTION_MAPPING = {
 }
 
 let queue = new SnakeQueue();
+let server = new SnakeServer();
+// TODO: fix
+server.heartbeatTolerance = 1000;
 var images = new Object();
 
 var init = function(){
@@ -38,6 +41,7 @@ var init = function(){
     imagesLoaded++;
     if(imagesLoaded == Object.keys(images).length){
       snakeCanvas.executeNTimesPerSecond(advanceGame, 5);
+			server.start();
     }
   }
 
@@ -48,7 +52,6 @@ var init = function(){
       imagesLoaded++;
     }
   });
-
 }
 
 var advanceGame = function() {
@@ -74,6 +77,5 @@ document.addEventListener('keydown', function(e) {
       }
     });
 
-queue.addPlayer("amir");
 snakeCanvas.addApple();
 var delay = 0;

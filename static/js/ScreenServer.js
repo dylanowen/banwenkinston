@@ -16,6 +16,7 @@ class ScreenServer {
 
   start() {
     if (!this[_socket]) {
+      console.log("Starting screen server at: " + getWebSocketBase() + 'ws?type=server')
       this[_socket] = new WebSocket(getWebSocketBase() + 'ws?type=server');
       this[_clients] = new Set();
       this[_heartbeatsMissed] = 0;
@@ -28,32 +29,33 @@ class ScreenServer {
           const client = packet.client;
           const message = packet.message;
           if (message.type == "connect") {
+            console.log("Client connecting: " + client);
             this[_clients].add(client);
             this.onClientConnect(client);
           } else if (message.type == "disconnect") {
             if (this[_clients].contains(client)) {
+              console.log("Client disconnecting: " + client);
               this.onClientDisconnect(client);
               this[_clients].remove(client);
             } else {
               console.error("Can not disconnect {" + client + "}, not currently connected");
             }
-          } else if (message.type == "input") {
+          } else {
             if (this[_clients].contains(client)) {
               this.onInput(client, message);
             } else {
               console.error("Client {" + client + "} attempted to send input but has not connected");
             }
-          } else {
-            console.error("Invalid message received:");
-            console.error(message);
           }
         } else if (packet.type == Packet.PING) {
           console.log("Received ping:");
           console.log(packet.message);
-          this[_socket].send(packet);
+          this[_socket].send(JSON.stringify(packet));
         } else if (packet.type == Packet.HEARTBEAT) {
           console.log("Received heartbeat");
           this[_heartbeatsMissed] = 0;
+        } else if (packet.id){
+          console.log("Connected, server id: " + packet.id);
         } else {
           console.error("Invalid packet received:");
           console.error(packet);
@@ -73,7 +75,7 @@ class ScreenServer {
         } else {
           console.log("Sending heartbeat");
           const heartbeatMessage = this.heartbeat();
-          this[_socket].send(new Packet({type: Packet.HEARTBEAT, message: heartbeatMessage}));
+          this[_socket].send(JSON.stringify(new Packet({type: Packet.HEARTBEAT, message: heartbeatMessage})));
           this[_heartbeatTimeoutId] = setTimeout(heartbeatFunction, this.heartbeatInterval);
         }
       }
