@@ -1,0 +1,72 @@
+<html>
+<head>
+    <title>Planning Poker</title>
+</head>
+<body>
+<h1>Planning Poker</h1>
+<div id="container"></div>
+<script type="text/javascript">
+
+const wsPath = "ws://" + window.location.host + "/ws";
+
+const trashMessage = JSON.stringify({
+    trash: 'trash'
+})
+
+function createClient(serverId) {
+    const socket = new WebSocket(wsPath + '?type=client&serverId=' + serverId);
+    socket.onopen = function(event) {
+        console.log(event)
+
+        socket.send(JSON.stringify({client: "lol"}))
+        setInterval(function() {
+            socket.send(trashMessage)
+        }, 1000)
+    }
+    socket.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        const id = data.id;
+        console.log(data.message);
+
+        socket.onmessage = message.bind(null, "client", id)
+    }
+}
+
+function message(type, id, event) {
+    console.log(type + ": " + id, event.data)
+}
+
+function createServer(callback) {
+    const socket = new WebSocket(wsPath + '?type=server');
+    socket.onopen = function(event) {
+        console.log(event);
+        socket.send(JSON.stringify({
+            woo: 'Im a server!!, I do whatever the fuck I want'
+        }))
+    }
+    socket.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        const id = data.id;
+        console.log(data.message);
+
+        socket.onmessage = message.bind(null, "server", id)
+
+        setInterval(function() {
+            socket.send(JSON.stringify({
+                id: 1,
+                data: {trash: 'trash'}
+            }))
+        }, 1000)
+
+        callback(id)
+    }
+}
+
+createServer(function(serverId) {
+    createClient(serverId)
+    createClient(serverId)
+})
+
+</script>
+</body>
+</html>

@@ -30,7 +30,7 @@ object Server {
 
     Connection.debugFlow.via(Flow.fromSinkAndSourceMat(serverSink, serverSource) {
       (source, sink) => {
-        val id: String = genId
+        val id: String = UniqueIds.get
         val server: Server = new Server(id, sink, source)
         servers.put(id, server)
 
