@@ -1,24 +1,40 @@
-var buttonClickEventNames = ["mousedown", "touchstart"];
+const buttonClickEventNames = ["mousedown", "touchstart"];
+const arrowKeycodes = [37, 38, 39, 40]
 
-initializeAllButtonListeners();
+initializeAllListeners();
 
-// initialize button listeners for click and click-like events
-function initializeAllButtonListeners() {
-  var buttons = document.getElementsByClassName("buttondiv");
+// initialize button listeners for click, click-like, and keypress events
+function initializeAllListeners() {
+  document.addEventListener("keydown", (event) => {
+      event.preventDefault();
+      if (arrowKeycodes.includes(event.keyCode)) {
+        sendThingToTheSocketThing("key:" + event.keyCode);
+      }
+  });
+
+  const buttons = document.getElementsByClassName("buttondiv");
   for (button of buttons) {
     for (eventName of buttonClickEventNames) {
-      registerButtonListener(button);
+      button.addEventListener(eventName, (event) => {
+          sendThingToTheSocketThing(button.id);
+      });
     }
   }
 }
 
-// register a listener that sends the button press to the web socket
-function registerButtonListener(button) {
-  button.addEventListener(eventName, (event) => {
-    sendThingToTheSocketThing(button.id);
-  });
+function sendThingToTheSocketThing(buttonName) {
+  console.log(buttonName);
 }
 
-function sendThingToTheSocketThing(string) {
-  console.log(string);
+// TODO: use the method in common.js
+function getWebSocketBase() {
+    const loc = window.location;
+    const path = loc.pathname.substring(0, loc.pathname.lastIndexOf('/'))
+    let protocol;
+    if (loc.protocol === "https:") {
+        protocol = "wss:";
+    } else {
+        protocol = "ws:";
+    }
+    return protocol + "//" + loc.host + path + "/";
 }
