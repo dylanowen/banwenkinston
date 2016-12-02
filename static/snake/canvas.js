@@ -75,7 +75,7 @@ var snakeCanvas = {
   drawPixel: function(color, pixel) {
     snakeCanvas.canvas().fillStyle = color;
     var translatedPixel = snakeCanvas.translatePixel(pixel);
-    snakeCanvas.context.fillRect(translatedPixel.x, translatedPixel.y, snakeCanvas.pixelSize, snakeCanvas.pixelSize);
+    snakeCanvas.context.fillRect(translatedPixel.x, translatedPixel.y, snakeCanvas.pixelSize - 1, snakeCanvas.pixelSize - 1);
   },
 
   translatePixel: function(pixel) {
