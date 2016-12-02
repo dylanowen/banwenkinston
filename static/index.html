@@ -19,12 +19,14 @@ function getWebSocketBase() {
 }
 
 const messages = document.getElementById('messages');
-const socket = new WebSocket(getWebSocketBase() + 'ws?type=client&serverId=2');
+const socket = new WebSocket(getWebSocketBase() + 'ws?type=client&serverId=server_1');
 
-let i = 0;
 socket.onopen = function (event) {
-    socket.send("" + i++);
+    for (let i = 0; i < 10; i++) {
+        socket.send("hello: " + i);
+    }
 };
+/*
 socket.onmessage = function (event) {
     //const received = document.createElement('div');
     //received.textContent = event.data;
@@ -34,6 +36,7 @@ socket.onmessage = function (event) {
         socket.send("" + i++);
     }
 }
+*/
 </script>
 </body>
 </html>

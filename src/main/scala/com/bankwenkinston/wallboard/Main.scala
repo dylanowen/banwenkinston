@@ -31,47 +31,25 @@ object Main {
     implicit val executionContext = system.dispatcher
 
 
-    import akka.stream.scaladsl.GraphDSL.Implicits._
 
-    val mainSocket: Flow[Message, Message, Any] = Flow[Message].mapConcat({
-      case tm: TextMessage =>
-        TextMessage(Source.single("Hello ") ++ tm.textStream ++ Source.single("!")) :: Nil
-      case bm: BinaryMessage =>
-        // ignore binary messages but drain content to avoid the stream being clogged
-        bm.dataStream.runWith(Sink.ignore)
-        Nil
-    }) //~> Flow[Message].map(_)
-
-    //val testSocket: Flow[Message, Message, Any] = Flow[Message] ~
 
     val route: Flow[HttpRequest, HttpResponse, Any] =
       path("ws") {
         parameters("type" ! "client", "serverId") { (serverId) =>
           val maybeServer: Option[Server] = Server.get(serverId)
           if (maybeServer.isDefined) {
-            handleWebSocketMessages(ClientGraph(maybeServer.get))
+            handleWebSocketMessages(ClientGraph.create(maybeServer.get))
           }
           else {
             complete(notFound)
           }
         } ~
         parameters("type" ! "server") {
-          complete(s"hi server")
+          handleWebSocketMessages(Server.create)
         }
       } ~ encodeResponse {
         getFromDirectory(staticRoot)
       }
-      /*
-      path("client") {
-        parameters("serverId") {
-          (serverId) => {
-            complete(s"The color is '$serverId'")
-            //handleWebSocketMessages(mainSocket)
-          }
-        }
-      } ~ path("server") {
-        handleWebSocketMessages(mainSocket)
-      }*/
 
     val bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
 
