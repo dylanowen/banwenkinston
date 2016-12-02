@@ -33,6 +33,9 @@ function createServer(callback) {
     const socket = new WebSocket(wsPath + '?type=server');
     socket.onopen = function(event) {
         console.log(event);
+        socket.send(JSON.stringify({
+            woo: 'Im a server!!, I do whatever the fuck I want'
+        }))
     }
     socket.onmessage = function (event) {
         const data = JSON.parse(event.data);

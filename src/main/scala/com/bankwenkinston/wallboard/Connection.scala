@@ -1,12 +1,17 @@
 package com.bankwenkinston.wallboard
 
 import akka.NotUsed
-import akka.http.scaladsl.model.ws.{Message, TextMessage}
-import akka.stream.Materializer
+import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
+import akka.stream.{FlowShape, Fusing, Materializer}
 import akka.stream.scaladsl.{Flow, MergeHub, Sink, Source}
 import com.bankwenkinston.wallboard.Connection.Welcome
-import org.json4s.{DefaultFormats, Formats}
+import org.json4s.JsonAST.JValue
+import org.json4s.native.JsonMethods.parse
+import org.json4s.{DefaultFormats, Formats, JObject}
 import org.json4s.native.Serialization
+import akka.stream.Fusing.FusedGraph
+
+import scala.concurrent.Future
 
 /**
   * TODO add description
@@ -24,6 +29,28 @@ object Connection {
 
     msg
   })
+
+  def getParseGraph(implicit materializer: Materializer): FusedGraph[FlowShape[Message, JObject], NotUsed] = {
+    val flow = Flow[Message].mapAsync(1) {
+      // transform websocket message to domain message (string)
+      case TextMessage.Strict(text) => Future.successful(text)
+      case streamed: TextMessage.Streamed => streamed.textStream.runFold("")(_ ++ _)
+      case bm: BinaryMessage =>
+        // ignore binary messages but drain content to avoid the stream being clogged
+        bm.dataStream.runWith(Sink.ignore)
+        Future.successful("")
+    }.map((str) => {
+      // get our abstract json value and make sure it's an object
+      parse(str) match {
+        case obj: JObject => Some(obj)
+        case _ => None
+      }
+    })
+    .filter(_.isDefined) //filter out the objects
+    .map(_.get) // get their actual value
+
+    Fusing.aggressive(flow)
+  }
 
   /*
   def create(callback: (Sink[Message, NotUsed]) => Unit)(implicit materializer: Materializer): Flow[Message, Message, Any] = {
