@@ -14,6 +14,7 @@ import org.json4s.native.JsonMethods._
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
 import scala.language.higherKinds
+import scala.util.Try
 
 /**
   * TODO add description
@@ -39,14 +40,6 @@ object Server {
         println("Connected to Server: " + id)
       }
     })
-
-      /*
-    val (serverSink, serverSource) = MergeHub.source[Message].toMat(BroadcastHub.sink[Message])(Keep.both).run()
-
-
-
-    Flow.fromSinkAndSource(serverSink, serverSource)
-    */
   }
 
   def get(id: String): Option[Server] = servers.get(id)
@@ -62,24 +55,10 @@ class Server(id: String, sink: Sink[Message, NotUsed], val source: Source[Messag
     val clientSource: Source[Message, Sink[Message, NotUsed]] = MergeHub.source[Message]
 
     // make sure the messages were intended for us
-    val filterFlow = Flow[Message].mapAsync(1) {
-      // transform websocket message to domain message (string)
-      case TextMessage.Strict(text) => Future.successful(text)
-      case streamed: TextMessage.Streamed => streamed.textStream.runFold("")(_ ++ _)
-      case bm: BinaryMessage =>
-        // ignore binary messages but drain content to avoid the stream being clogged
-        bm.dataStream.runWith(Sink.ignore)
-        Future.successful("")
-    }.map(
-      parse(_)
-    ).filter({
-      case _: JObject => true
-      case _ => false
-    }).filter((obj) => {
-      (obj \ "id").toOption.isDefined
-    }).map(
-      (obj) => obj \ "data"
-    ).map(Connection.serialize)
+    val filterFlow = getClientMessageFlow
+      .filter(_._1 == clientId)
+      .map(_._2)
+      .map(Connection.serialize)
 
     // attach the client to the server
     Connection.debugFlow.via(Flow.fromSinkAndSourceMat(this.sink, clientSource) {
@@ -96,5 +75,27 @@ class Server(id: String, sink: Sink[Message, NotUsed], val source: Source[Messag
         println("Connected to Client: " + clientId)
       }
     })
+  }
+
+  def getServerMessageFlow: Flow[Message, JObject, NotUsed] = {
+    Flow[Message].via(Connection.getParseGraph)
+      .filter((obj) => {
+        // get messages without ids
+        (obj \ "id").toOption.isEmpty
+      })
+      .map((obj) => {
+        (obj \ "data").asInstanceOf[JObject]
+      })
+  }
+
+  def getClientMessageFlow: Flow[Message, (Int, JObject), NotUsed] = {
+    Flow[Message].via(Connection.getParseGraph)
+      .filter((obj) => {
+        // get messages with ids
+        (obj \ "id").toOption.isDefined
+      })
+      .map((obj) => {
+        ((obj \ "id").toInt.toInt, (obj \ "data").asInstanceOf[JObject])
+      })
   }
 }
