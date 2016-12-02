@@ -4,7 +4,8 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import akka.NotUsed
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
-import akka.stream.Materializer
+import akka.stream.Fusing.FusedGraph
+import akka.stream.{FlowShape, Fusing, Materializer}
 import akka.stream.scaladsl.{Flow, Keep, MergeHub, Sink, Source, _}
 import com.bankwenkinston.wallboard.Connection.Welcome
 import com.bankwenkinston.wallboard.JsonUtils._
@@ -55,19 +56,17 @@ class Server(id: String, sink: Sink[Message, NotUsed], val source: Source[Messag
     val clientSource: Source[Message, Sink[Message, NotUsed]] = MergeHub.source[Message]
 
     // make sure the messages were intended for us
-    val filterFlow = getClientMessageFlow
-      .filter(_._1 == clientId)
-      .map(_._2)
-      .map(Connection.serialize)
+    val clientGraph = getClientGraph(clientId)
 
     // attach the client to the server
-    Connection.debugFlow.via(Flow.fromSinkAndSourceMat(this.sink, clientSource) {
+    Connection.debugFlow.via(wrapClientMessageToServerGraph(clientId))
+      .via(Flow.fromSinkAndSourceMat(this.sink, clientSource) {
       (_, clientSink) => {
         val client: Client = new Client(clientId, clientSink)
         this.clients.put(clientId, client)
 
         // attach the server to the client
-        this.source.via(filterFlow).to(clientSink).run()
+        this.source.via(clientGraph).to(clientSink).run()
 
         // let the server know the client exists
         this.sendMessage(Welcome("welcome client", clientId))
@@ -88,8 +87,8 @@ class Server(id: String, sink: Sink[Message, NotUsed], val source: Source[Messag
       })
   }
 
-  def getClientMessageFlow: Flow[Message, (Int, JObject), NotUsed] = {
-    Flow[Message].via(Connection.getParseGraph)
+  def getClientGraph(clientId: Int): FusedGraph[FlowShape[Message, Message], NotUsed] = {
+    val flow = Connection.getParseGraph
       .filter((obj) => {
         // get messages with ids
         (obj \ "id").toOption.isDefined
@@ -97,5 +96,18 @@ class Server(id: String, sink: Sink[Message, NotUsed], val source: Source[Messag
       .map((obj) => {
         ((obj \ "id").toInt.toInt, (obj \ "data").asInstanceOf[JObject])
       })
+      .filter(_._1 == clientId)
+      .map(_._2)
+      .map(Connection.serialize)
+
+    Fusing.aggressive(flow)
+  }
+
+  def wrapClientMessageToServerGraph(clientId: Int): FusedGraph[FlowShape[Message, Message], NotUsed] = {
+    val flow = Connection.getParseGraph
+      .map(Client.ClientWrapper(clientId, _))
+      .map(Connection.serialize)
+
+    Fusing.aggressive(flow)
   }
 }

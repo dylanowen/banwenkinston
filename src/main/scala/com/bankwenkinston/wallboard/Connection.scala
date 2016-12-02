@@ -12,6 +12,7 @@ import org.json4s.native.Serialization
 import akka.stream.Fusing.FusedGraph
 
 import scala.concurrent.Future
+import scala.util.Try
 
 /**
   * TODO add description
@@ -22,7 +23,12 @@ import scala.concurrent.Future
 object Connection {
   implicit val formats: Formats = DefaultFormats
 
-  case class Welcome(message: String, id: AnyVal)
+  // enforce _type type on all packets
+  trait Packet {
+    def _type: String
+  }
+
+  case class Welcome(message: String, id: AnyVal, _type: String = "welcome") extends Packet
 
   val debugFlow: Flow[Message, Message, Any] = Flow[Message].map((msg) => {
     println(msg)
@@ -30,8 +36,8 @@ object Connection {
     msg
   })
 
-  def getParseGraph(implicit materializer: Materializer): FusedGraph[FlowShape[Message, JObject], NotUsed] = {
-    val flow = Flow[Message].mapAsync(1) {
+  def getParseGraph(implicit materializer: Materializer): Flow[Message, JObject, NotUsed] = {
+    Flow[Message].mapAsync(1) {
       // transform websocket message to domain message (string)
       case TextMessage.Strict(text) => Future.successful(text)
       case streamed: TextMessage.Streamed => streamed.textStream.runFold("")(_ ++ _)
@@ -41,15 +47,15 @@ object Connection {
         Future.successful("")
     }.map((str) => {
       // get our abstract json value and make sure it's an object
-      parse(str) match {
-        case obj: JObject => Some(obj)
-        case _ => None
-      }
+      Try(
+        parse(str) match {
+          case obj: JObject => Some(obj)
+          case _ => None
+        }
+      ).getOrElse(None)
     })
     .filter(_.isDefined) //filter out the objects
     .map(_.get) // get their actual value
-
-    Fusing.aggressive(flow)
   }
 
   /*

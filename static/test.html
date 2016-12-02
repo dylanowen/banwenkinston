@@ -9,12 +9,19 @@
 
 const wsPath = "ws://" + window.location.host + "/ws";
 
+const trashMessage = JSON.stringify({
+    trash: 'trash'
+})
+
 function createClient(serverId) {
     const socket = new WebSocket(wsPath + '?type=client&serverId=' + serverId);
     socket.onopen = function(event) {
         console.log(event)
 
         socket.send(JSON.stringify({client: "lol"}))
+        setInterval(function() {
+            socket.send(trashMessage)
+        }, 1000)
     }
     socket.onmessage = function (event) {
         const data = JSON.parse(event.data);
@@ -47,9 +54,7 @@ function createServer(callback) {
         setInterval(function() {
             socket.send(JSON.stringify({
                 id: 1,
-                data: {
-                    hello: ", the server"
-                }
+                data: {trash: 'trash'}
             }))
         }, 1000)
 
