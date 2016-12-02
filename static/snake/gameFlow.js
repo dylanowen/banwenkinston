@@ -16,19 +16,19 @@ var init = function(){
 
   //right
   var j1 = document.createElement("IMG");
-  goblin.src = "images/j1.png";
+  j1.src = "images/j1.png";
   //up
   var j2 = document.createElement("IMG");
-  goblinu.src = "images/j2.png";
+  j2.src = "images/j2.png";
   //down
   var j3 = document.createElement("IMG");
-  goblind.src = "images/j3.png";
+  j3.src = "images/j3.png";
   //left
   var j4 = document.createElement("IMG");
-  goblinl.src = "images/j4.png";
+  j4.src = "images/j4.png";
 
 	var j5 = document.createElement("IMG");
-  goblinl.src = "images/j5.png";
+  j5.src = "images/j5.png";
 
   var guac = document.createElement("IMG");
   guac.src = "images/guac.png";
