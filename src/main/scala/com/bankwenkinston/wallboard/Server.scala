@@ -7,8 +7,9 @@ import akka.http.scaladsl.model.ws.Message
 import akka.stream.Fusing.FusedGraph
 import akka.stream.scaladsl.{Flow, MergeHub, Sink, Source, _}
 import akka.stream.{FlowShape, Fusing, Materializer}
-import com.bankwenkinston.wallboard.Connection.Welcome
+import com.bankwenkinston.wallboard.Connection.{Packet, Welcome}
 import com.bankwenkinston.wallboard.JsonUtils._
+import com.bankwenkinston.wallboard.Server.ClientConnected
 import org.json4s._
 
 import scala.collection.concurrent.TrieMap
@@ -21,6 +22,9 @@ import scala.language.higherKinds
   * @since Dec-2016
   */
 object Server {
+
+  case class ClientConnected(id: AnyVal, _type: String = "clientConnected") extends Packet
+
   private val servers: TrieMap[String, Server] = new TrieMap[String, Server]()
   private val id: AtomicInteger = new AtomicInteger(1)
 
@@ -30,7 +34,7 @@ object Server {
 
     Connection.debugFlow.via(Flow.fromSinkAndSourceMat(serverSink, serverSource) {
       (source, sink) => {
-        val id: String = genId
+        val id: String = UniqueIds.get
         val server: Server = new Server(id, sink, source)
         servers.put(id, server)
 
@@ -66,7 +70,7 @@ class Server(id: String, sink: Sink[Message, NotUsed], val source: Source[Messag
         this.source.via(clientGraph).to(clientSink).run()
 
         // let the server know the client exists
-        this.sendMessage(Welcome("welcome client", clientId))
+        this.sendMessage(ClientConnected(clientId))
 
         println("Connected to Client: " + clientId)
       }

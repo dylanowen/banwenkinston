@@ -24,6 +24,13 @@ object Main {
     }
 
     val staticRoot = args(0)
+    val host: String = "0.0.0.0"
+    val port: Int = if(args.length >= 2) {
+      args(1).toInt
+    }
+    else {
+      8080
+    }
 
     implicit val system = ActorSystem("wallboard")
     implicit val materializer = ActorMaterializer()
@@ -49,9 +56,9 @@ object Main {
         getFromDirectory(staticRoot)
       }
 
-    val bindingFuture = Http().bindAndHandle(route, "0.0.0.0", 8081)
+    val bindingFuture = Http().bindAndHandle(route, host, port)
 
-    println(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
+    println(s"Server online at http://" + host + ":" + port + "/\nPress RETURN to stop...")
     StdIn.readLine() // let it run until user presses return
     bindingFuture
       .flatMap(_.unbind()) // trigger unbinding from the port
