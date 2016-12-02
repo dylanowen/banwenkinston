@@ -1,9 +1,11 @@
 let uiIds = new Array();
+let colors = ["red", "blue", "green", "yellow", "orange", "white", "purple"];
 class Snake {
   constructor( x, y, id){
     this.pixels = [];
     this.type = id;
     this.id = uiIds.pop();
+    this.color = colors.pop();
     this.length = 5;
     for (var i = this.length-1; i >= 0; i--){
       this.pixels.push(new Pixel(x + i, y, this.id));
@@ -56,11 +58,15 @@ class Snake {
   }
 
   draw(){
-      snakeCanvas.draw(this.pixels);
+      snakeCanvas.draw([this.pixels[0]]);
+      for(var i = 1; i < this.pixels.length; i++){
+        snakeCanvas.drawPixel(this.color, this.pixels[i]);
+      }
   }
 
   releaseID(){
     uiIds.push(this.id);
+    colors.push(this.color);
   }
 
   static addNewSnake(client){
