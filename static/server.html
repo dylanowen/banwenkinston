@@ -3,7 +3,7 @@
     <title>WS Test</title>
 </head>
 <body>
-<h1>Socket</h1>
+<h1>Server</h1>
 <div id="messages"></div>
 <script type="text/javascript">
 function getWebSocketBase() {
@@ -19,24 +19,13 @@ function getWebSocketBase() {
 }
 
 const messages = document.getElementById('messages');
-const socket = new WebSocket(getWebSocketBase() + 'ws?type=client&serverId=server_1');
+const socket = new WebSocket(getWebSocketBase() + 'ws?type=server');
 
-socket.onopen = function (event) {
-    for (let i = 0; i < 10; i++) {
-        socket.send("hello: " + i);
-    }
-};
-/*
 socket.onmessage = function (event) {
-    //const received = document.createElement('div');
-    //received.textContent = event.data;
-    //messages.appendChild(received);
-
-    if (i < 10000000) {
-        socket.send("" + i++);
-    }
+    const received = document.createElement('div');
+    received.textContent = event.data;
+    messages.appendChild(received);
 }
-*/
 </script>
 </body>
 </html>
