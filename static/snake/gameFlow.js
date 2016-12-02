@@ -15,25 +15,29 @@ var images = new Object();
 var init = function(){
 
   //right
-  var goblin = document.createElement("IMG");
-  goblin.src = "images/goblin.png";
+  var j1 = document.createElement("IMG");
+  j1.src = "images/j1.png";
   //up
-  var goblinu = document.createElement("IMG");
-  goblinu.src = "images/goblin-up.png";
+  var j2 = document.createElement("IMG");
+  j2.src = "images/j2.png";
   //down
-  var goblind = document.createElement("IMG");
-  goblind.src = "images/goblin-down.png";
+  var j3 = document.createElement("IMG");
+  j3.src = "images/j3.png";
   //left
-  var goblinl = document.createElement("IMG");
-  goblinl.src = "images/goblin-left.png";
+  var j4 = document.createElement("IMG");
+  j4.src = "images/j4.png";
+
+	var j5 = document.createElement("IMG");
+  j5.src = "images/j5.png";
 
   var guac = document.createElement("IMG");
   guac.src = "images/guac.png";
 
-  images["right"] = goblinl;
-  images["left"] = goblin;
-  images["down"] = goblinu;
-  images["up"] = goblind;
+  images["j1"] = j1;
+  images["j2"] = j2;
+  images["j3"] = j3;
+  images["j4"] = j4;
+	images["j5"] = j5;
 
 	uiIds = Object.keys(images);
 
