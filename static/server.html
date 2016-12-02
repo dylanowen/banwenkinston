@@ -1,0 +1,36 @@
+<html>
+<head>
+  <title>WS Test</title>
+
+  <script src="js/message.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/packet.js"></script>
+  <script src="js/ScreenServer.js"></script>
+</head>
+<body>
+  <h1>Server</h1>
+  <div id="messages"></div>
+  <script type="text/javascript">
+  function getWebSocketBase() {
+      const loc = window.location;
+      const path = loc.pathname.substring(0, loc.pathname.lastIndexOf('/'))
+      let protocol;
+      if (loc.protocol === "https:") {
+          protocol = "wss:";
+      } else {
+          protocol = "ws:";
+      }
+      return protocol + "//" + loc.host + path + "/";
+  }
+
+  const messages = document.getElementById('messages');
+  const socket = new WebSocket(getWebSocketBase() + 'ws?type=server');
+
+  socket.onmessage = function (event) {
+      const received = document.createElement('div');
+      received.textContent = event.data;
+      messages.appendChild(received);
+  }
+  </script>
+</body>
+</html>
