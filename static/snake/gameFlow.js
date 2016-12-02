@@ -36,7 +36,7 @@ var init = function(){
   images["up"] = goblind;
   images["apple"] = guac;
 
-	uiIds = images.keys;
+	uiIds = images.keys();
   var imagesLoaded = 0;
 
   var waitforload = function(images){
