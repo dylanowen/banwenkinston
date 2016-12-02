@@ -34,9 +34,11 @@ var init = function(){
   images["left"] = goblin;
   images["down"] = goblinu;
   images["up"] = goblind;
-  images["apple"] = guac;
 
-	uiIds = images.keys();
+	uiIds = Object.keys(images);
+
+	images["apple"] = guac;
+
   var imagesLoaded = 0;
 
   var waitforload = function(images){
