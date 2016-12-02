@@ -73,8 +73,10 @@ class Server(id: String, sink: Sink[Message, NotUsed], val source: Source[Messag
     }.map(
       parse(_)
     ).filter({
-      case obj: JObject => (obj \ "id").toInt == clientId
+      case _: JObject => true
       case _ => false
+    }).filter((obj) => {
+      (obj \ "id").toOption.isDefined
     }).map(
       (obj) => obj \ "data"
     ).map(Connection.serialize)

@@ -33,7 +33,7 @@ class ScreenServer {
             this[_clients].add(client);
             this.onClientConnect(client);
           } else if (message.type == "disconnect") {
-            if (this[_clients].contains(client)) {
+            if (this[_clients].has(client)) {
               console.log("Client disconnecting: " + client);
               this.onClientDisconnect(client);
               this[_clients].remove(client);
@@ -41,7 +41,7 @@ class ScreenServer {
               console.error("Can not disconnect {" + client + "}, not currently connected");
             }
           } else {
-            if (this[_clients].contains(client)) {
+            if (this[_clients].has(client)) {
               this.onInput(client, message);
             } else {
               console.error("Client {" + client + "} attempted to send input but has not connected");

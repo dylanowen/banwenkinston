@@ -12,6 +12,6 @@ class SnakeServer extends ScreenServer{
 
   onInput(client, input) {
     let snake = snakeCanvas.snakes.get(client);
-    snake.changeDirection(DIRECTION_MAPPING[input]);
+    snake.changeDirection(DIRECTION_MAPPING[input.direction]);
   }
 }
