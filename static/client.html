@@ -28,6 +28,33 @@
             background:green;
         }
     </style>
+    <script type="text/javascript">
+    function setTextareaPointerEvents(value) {
+        var nodes = document.getElementsByTagName('textarea');
+        for(var i = 0; i < nodes.length; i++) {
+            nodes[i].style.pointerEvents = value;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setTextareaPointerEvents('none');
+    });
+
+    document.addEventListener('touchstart', function() {
+        setTextareaPointerEvents('auto');
+    });
+
+    document.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+        setTextareaPointerEvents('none');
+    });
+
+    document.addEventListener('touchend', function() {
+        setTimeout(function() {
+            setTextareaPointerEvents('none');
+        }, 0);
+    });
+    </script>
 </head>
 
 <body>

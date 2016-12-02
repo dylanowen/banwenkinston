@@ -1,4 +1,4 @@
-const buttonClickEventNames = ["mousedown", "touchstart"];
+const buttonClickEventNames = ["mousedown"];
 const eventMap = new Map();
 
 // get the server and user IDs from the query parameters
@@ -47,14 +47,38 @@ function initializeAllListeners() {
 
   // listen to clicks and touches
   const buttons = document.getElementsByClassName("buttondiv");
-  for (let button of buttons) {
-    for (eventName of buttonClickEventNames) {
-      button.addEventListener(eventName, (event) => {
+
+
+  /*buttons.forEach(function(button) {
+      buttonClickEventNames.forEach(function(eventName) {
           console.log("button:" + button.id);
           sendThingToTheSocketThing(eventMap.get(button.id));
+          alert("ALERT: " + button.id);
+      });
+  });*/
+
+
+  for (var b = 0; b < buttons.length; b++) {
+    for (var e = 0; e < buttonClickEventNames.length; e++) {
+      var button = buttons[b];
+      var eventName = buttonClickEventNames[e];
+      button.addEventListener(eventName, (event) => {
+          console.log("button:" + event.currentTarget.id);
+          sendThingToTheSocketThing(eventMap.get(event.currentTarget.id));
       });
     }
   }
+
+
+   /*for each (var eventName in buttonClickEventNames) {
+    alert("adding events");
+      button.addEventListener(eventName, (event) => {
+          console.log("button:" + button.id);
+          sendThingToTheSocketThing(eventMap.get(button.id));
+          alert("ALERT: " + button.id);
+      });
+    }
+  }*/
 }
 
 function sendThingToTheSocketThing(direction) {
