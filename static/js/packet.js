@@ -1,6 +1,7 @@
 class Packet {
-  constructor(source, message) {
-    this.source = clientId;
+  constructor({type, client, message}) {
+    this.type = type;
+    this.client = client;
     this.message = message;
   }
 }
