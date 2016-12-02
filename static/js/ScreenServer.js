@@ -25,9 +25,10 @@ class ScreenServer {
       // Start listening for events
       this[_socket].onmessage = (event) => {
         const packet = JSON.parse(event.data);
-        if (packet.type == Packet.FROM_CLIENT) {
-          const client = packet.client;
+        if (packet._type == Packet.FROM_CLIENT) {
+          const clientId = packet.client;
           const message = packet.message;
+          const client = message.user;
           if (message.type == "connect") {
             console.log("Client connecting: " + client);
             this[_clients].add(client);
@@ -47,11 +48,11 @@ class ScreenServer {
               console.error("Client {" + client + "} attempted to send input but has not connected");
             }
           }
-        } else if (packet.type == Packet.PING) {
+        } else if (packet._type == Packet.PING) {
           console.log("Received ping:");
           console.log(packet.message);
           this[_socket].send(JSON.stringify(packet));
-        } else if (packet.type == Packet.HEARTBEAT) {
+        } else if (packet._type == Packet.HEARTBEAT) {
           console.log("Received heartbeat");
           this[_heartbeatsMissed] = 0;
         } else if (packet.id){

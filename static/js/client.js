@@ -59,7 +59,7 @@ function initializeAllListeners() {
 
 function sendThingToTheSocketThing(direction) {
   console.log("sending message:" + direction);
-  let inputMessage = new InputMessage(direction);
+  let inputMessage = new InputMessage(userId, direction);
   screenClient.send(inputMessage);
 }
 
