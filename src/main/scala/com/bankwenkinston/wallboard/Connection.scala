@@ -19,6 +19,12 @@ object Connection {
 
   case class Welcome(message: String, id: AnyVal)
 
+  val debugFlow: Flow[Message, Message, Any] = Flow[Message].map((msg) => {
+    println(msg)
+
+    msg
+  })
+
   /*
   def create(callback: (Sink[Message, NotUsed]) => Unit)(implicit materializer: Materializer): Flow[Message, Message, Any] = {
     val source: Source[Message, Sink[Message, NotUsed]] = MergeHub.source[Message]

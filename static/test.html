@@ -1,0 +1,64 @@
+<html>
+<head>
+    <title>Oh Shit What Up</title>
+</head>
+<body>
+<h1>Socket</h1>
+<div id="container"></div>
+<script type="text/javascript">
+
+const wsPath = "ws://" + window.location.host + "/ws";
+
+function createClient(serverId) {
+    const socket = new WebSocket(wsPath + '?type=client&serverId=' + serverId);
+    socket.onopen = function(event) {
+        console.log(event)
+
+        socket.send(JSON.stringify({client: "lol"}))
+    }
+    socket.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        const id = data.id;
+        console.log(data.message);
+
+        socket.onmessage = message.bind(null, "client", id)
+    }
+}
+
+function message(type, id, event) {
+    console.log(type + ": " + id, event.data)
+}
+
+function createServer(callback) {
+    const socket = new WebSocket(wsPath + '?type=server');
+    socket.onopen = function(event) {
+        console.log(event);
+    }
+    socket.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        const id = data.id;
+        console.log(data.message);
+
+        socket.onmessage = message.bind(null, "server", id)
+
+        setInterval(function() {
+            socket.send(JSON.stringify({
+                id: 1,
+                data: {
+                    hello: ", the server"
+                }
+            }))
+        }, 1000)
+
+        callback(id)
+    }
+}
+
+createServer(function(serverId) {
+    createClient(serverId)
+    createClient(serverId)
+})
+
+</script>
+</body>
+</html>

@@ -5,35 +5,15 @@ import java.util.concurrent.atomic.AtomicInteger
 import akka.NotUsed
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.stream.Materializer
-import akka.stream.scaladsl.{Flow, Keep, MergeHub, RunnableGraph, Sink, Source}
-import akka.stream._
-import akka.stream.scaladsl._
-import akka.event.LoggingAdapter
-import akka.stream._
-import akka.Done
-import akka.stream.impl.StreamLayout.Module
-import akka.stream.impl._
-import akka.stream.impl.fusing._
-import akka.stream.stage.AbstractStage.{PushPullGraphStage, PushPullGraphStageWithMaterializedValue}
-import akka.stream.stage._
-import org.reactivestreams.{Processor, Publisher, Subscriber, Subscription}
-
-import scala.annotation.unchecked.uncheckedVariance
-import scala.collection.immutable
-import scala.concurrent.Future
-import scala.concurrent.duration.FiniteDuration
-import scala.language.higherKinds
-import akka.stream.impl.fusing.FlattenMerge
+import akka.stream.scaladsl.{Flow, Keep, MergeHub, Sink, Source, _}
 import com.bankwenkinston.wallboard.Connection.Welcome
-import org.json4s.JsonAST.JValue
+import com.bankwenkinston.wallboard.JsonUtils._
 import org.json4s._
-import org.json4s.native.Serialization
-import org.json4s.native.Serialization.{read, write}
 import org.json4s.native.JsonMethods._
-import JsonUtils._
-import com.bankwenkinston.wallboard.Client.NewClient
 
 import scala.collection.concurrent.TrieMap
+import scala.concurrent.Future
+import scala.language.higherKinds
 
 /**
   * TODO add description
@@ -46,15 +26,27 @@ object Server {
   private val id: AtomicInteger = new AtomicInteger(1)
 
   def create(implicit materializer: Materializer): Flow[Message, Message, Any] = {
+    val serverSource: Source[Message, Sink[Message, NotUsed]] = MergeHub.source[Message]
+    val serverSink: Sink[Message, Source[Message, NotUsed]] = BroadcastHub.sink[Message]
+
+    Connection.debugFlow.via(Flow.fromSinkAndSourceMat(serverSink, serverSource) {
+      (source, sink) => {
+        val id: String = genId
+        val server: Server = new Server(id, sink, source)
+        servers.put(id, server)
+
+        //val source: Source[Message, Sink[Message, NotUsed]] = MergeHub.source[Message]
+        println("Connected to Server: " + id)
+      }
+    })
+
+      /*
     val (serverSink, serverSource) = MergeHub.source[Message].toMat(BroadcastHub.sink[Message])(Keep.both).run()
 
-    val id: String = genId
-    val server: Server = new Server(id, serverSink, serverSource)
-    servers.put(id, server)
 
-    //val source: Source[Message, Sink[Message, NotUsed]] = MergeHub.source[Message]
 
     Flow.fromSinkAndSource(serverSink, serverSource)
+    */
   }
 
   def get(id: String): Option[Server] = servers.get(id)
@@ -88,7 +80,7 @@ class Server(id: String, sink: Sink[Message, NotUsed], val source: Source[Messag
     ).map(Connection.serialize)
 
     // attach the client to the server
-    Flow.fromSinkAndSourceMat(this.sink, clientSource) {
+    Connection.debugFlow.via(Flow.fromSinkAndSourceMat(this.sink, clientSource) {
       (_, clientSink) => {
         val client: Client = new Client(clientId, clientSink)
         this.clients.put(clientId, client)
@@ -97,8 +89,10 @@ class Server(id: String, sink: Sink[Message, NotUsed], val source: Source[Messag
         this.source.via(filterFlow).to(clientSink).run()
 
         // let the server know the client exists
-        this.sendMessage(NewClient(clientId))
+        this.sendMessage(Welcome("welcome client", clientId))
+
+        println("Connected to Client: " + clientId)
       }
-    }
+    })
   }
 }

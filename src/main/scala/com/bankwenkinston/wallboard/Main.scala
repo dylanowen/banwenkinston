@@ -25,12 +25,10 @@ object Main {
 
     val staticRoot = args(0)
 
-    implicit val system = ActorSystem("my-system")
+    implicit val system = ActorSystem("wallboard")
     implicit val materializer = ActorMaterializer()
     // needed for the future flatMap/onComplete in the end
     implicit val executionContext = system.dispatcher
-
-
 
 
     val route: Flow[HttpRequest, HttpResponse, Any] =

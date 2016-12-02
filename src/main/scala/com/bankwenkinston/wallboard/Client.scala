@@ -13,8 +13,6 @@ import akka.stream.scaladsl.{Flow, Keep, MergeHub, Sink, Source}
   */
 object Client {
 
-  case class NewClient(id: Int)
-
 }
 
 class Client(id: Int, sink: Sink[Message, NotUsed])(implicit materializer: Materializer) extends Connection(id, sink) {
