@@ -22,7 +22,7 @@ import scala.collection.mutable
   */
 class GameRouter(implicit materializer: Materializer, log: LoggingAdapter) {
   // java concurrent map gives us a stricter enforcement of atomicity over TrieMap
-  private val servers: ConcurrentMap[AnyVal, Server] = new ConcurrentHashMap[AnyVal, Server]()
+  private val servers: ConcurrentMap[String, Server] = new ConcurrentHashMap[String, Server]()
 
   /**
     * creates a flow for a server web socket connection
@@ -38,21 +38,21 @@ class GameRouter(implicit materializer: Materializer, log: LoggingAdapter) {
     server.registerClient()
   }
 
-  def getServer(id: String): Option[Server] = Option(servers.get(normalizeId(id)))
+  def getServer(id: String): Option[Server] = Option(servers.get(id))
 
-  private def normalizeId(id: String): AnyVal = id.asInstanceOf[AnyVal]
+  //def deleteServer(id: String): Unit = this.servers.remove(id)
 
   private def registerUniqueServer(source: Source[Message, NotUsed], sink: Sink[Message, NotUsed]): Server = {
     var server: Server = null
     var foundUniqueId: Boolean = false
     // loop trying to find a unique id, once we find one hold our spot with a placeholder
     do {
-      val uniqueId: AnyVal = normalizeId(UniqueIds.get)
+      val uniqueId: String = UniqueIds.get
       server = this.servers.computeIfAbsent(uniqueId, (_) => {
         foundUniqueId = true
         log.info("Server: " + uniqueId + " connected")
 
-        new Server(uniqueId, sink, source)
+        new WallboardServer(uniqueId, sink, source)
       })
     } while(!foundUniqueId)
 

@@ -14,12 +14,8 @@ import org.json4s.{JObject, _}
   * @author dylan.owen
   * @since Dec-2016
   */
-object Client {
-
-}
-
-class Client(id: Int, sink: Sink[Message, NotUsed])(implicit materializer: Materializer) extends WebSocketConnection(id, sink) {
-
+class Client(val id: Int, override val sink: Sink[Message, NotUsed])(override implicit val materializer: Materializer) extends WebSocketConnection {
+  override def getId: AnyVal = id.asInstanceOf[AnyVal]
   /**
     * @return a graph that filters out all messages intended for us
     */

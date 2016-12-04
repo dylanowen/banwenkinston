@@ -1,11 +1,10 @@
 package com.banwenkinston.streams
 
 import akka.NotUsed
-import akka.event.LoggingAdapter
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
-import com.banwenkinston.api._
+import com.banwenkinston.api.ws.Welcome
 import org.json4s.native.JsonMethods.parse
 import org.json4s.native.Serialization
 import org.json4s.{DefaultFormats, Formats, JObject}
@@ -42,10 +41,16 @@ object WebSocketConnection {
     .map(_.get) // get their actual value
   }
 }
-abstract class WebSocketConnection(val id: AnyVal, val sink: Sink[Message, NotUsed])(implicit materializer: Materializer) {
-  implicit val formats: Formats = DefaultFormats
 
-  protected val welcomeMessage: String = "oh shit what up"
+trait WebSocketConnection {
+  implicit val formats: Formats = DefaultFormats
+  implicit val materializer: Materializer
+
+  val sink: Sink[Message, NotUsed]
+
+  private val welcomeMessage: String = "oh shit what up"
+
+  def getId: AnyVal
 
   /**
     * Only use this for one off messages
@@ -60,5 +65,5 @@ abstract class WebSocketConnection(val id: AnyVal, val sink: Sink[Message, NotUs
     TextMessage(Serialization.write(message))
   }
 
-  sendMessage(Welcome(this.welcomeMessage, this.id))
+  sendMessage(Welcome(this.welcomeMessage, getId))
 }
