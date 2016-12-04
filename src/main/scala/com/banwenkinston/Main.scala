@@ -1,13 +1,16 @@
-package com.bankwenkinston.wallboard
+package com.banwenkinston
 
 import akka.actor.ActorSystem
+import akka.event.LoggingAdapter
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.http.scaladsl.server.Directives.{encodeResponse, _}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
+import com.banwenkinston.streams.{GameRouter, Server}
 
+import scala.concurrent.ExecutionContext
 import scala.io.StdIn
 
 /**
@@ -22,35 +25,31 @@ object Main {
       println("Expected path for static resources")
       sys.exit(1)
     }
-
     val staticRoot = args(0)
     val host: String = "0.0.0.0"
-    val port: Int = if(args.length >= 2) {
-      args(1).toInt
-    }
-    else {
-      8080
-    }
+    val port: Int = if(args.length >= 2) args(1).toInt else 8080
 
-    implicit val system = ActorSystem("wallboard")
-    implicit val materializer = ActorMaterializer()
+    implicit val system: ActorSystem = ActorSystem("GameRouter")
+    implicit val materializer: ActorMaterializer = ActorMaterializer()
+    implicit val log: LoggingAdapter = system.log
     // needed for the future flatMap/onComplete in the end
-    implicit val executionContext = system.dispatcher
+    implicit val executionContext: ExecutionContext = system.dispatcher
 
+    val gameRouter: GameRouter = new GameRouter()
 
     val route: Flow[HttpRequest, HttpResponse, Any] =
-      path("ws") {
-        parameters("type" ! "client", "serverId") { (serverId) =>
-          val maybeServer: Option[Server] = Server.get(serverId)
+      pathPrefix("servers") {
+        pathEndOrSingleSlash {
+          handleWebSocketMessagesForProtocol(gameRouter.createServerFlow, "server")
+        } ~
+        path(Segment) { (serverId) =>
+          val maybeServer: Option[Server] = gameRouter.getServer(serverId)
           if (maybeServer.isDefined) {
-            handleWebSocketMessages(maybeServer.get.createClient())
+            handleWebSocketMessagesForProtocol(gameRouter.createClientFlow(maybeServer.get), "client")
           }
           else {
             complete(notFound)
           }
-        } ~
-        parameters("type" ! "server") {
-          handleWebSocketMessages(Server.create)
         }
       } ~ encodeResponse {
         getFromDirectory(staticRoot)

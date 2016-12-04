@@ -17,7 +17,7 @@ class ScreenServer {
   start() {
     if (!this[_socket]) {
       console.log("Starting screen server at: " + getWebSocketBase() + 'ws?type=server')
-      this[_socket] = new WebSocket(getWebSocketBase() + 'ws?type=server');
+      this[_socket] = new WebSocket(getWebSocketBase() + 'servers', 'server');
       this[_clients] = new Set();
       this[_heartbeatsMissed] = 0;
       this[_heartbeatTimeoutId] = null;

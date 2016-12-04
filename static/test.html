@@ -7,14 +7,15 @@
 <div id="container"></div>
 <script type="text/javascript">
 
-const wsPath = "ws://" + window.location.host + "/ws";
+const wsPath = "ws://" + window.location.host + "/servers"
+const clients = 3;
 
 const trashMessage = JSON.stringify({
     trash: 'trash'
 })
 
 function createClient(serverId) {
-    const socket = new WebSocket(wsPath + '?type=client&serverId=' + serverId);
+    const socket = new WebSocket(wsPath + '/' + serverId, 'client');
     socket.onopen = function(event) {
         console.log(event)
 
@@ -37,7 +38,7 @@ function message(type, id, event) {
 }
 
 function createServer(callback) {
-    const socket = new WebSocket(wsPath + '?type=server');
+    const socket = new WebSocket(wsPath, 'server');
     socket.onopen = function(event) {
         console.log(event);
         socket.send(JSON.stringify({
@@ -52,10 +53,12 @@ function createServer(callback) {
         socket.onmessage = message.bind(null, "server", id)
 
         setInterval(function() {
-            socket.send(JSON.stringify({
-                id: 1,
-                data: {trash: 'trash'}
-            }))
+            for (var i = 0; i < clients; i++) {
+                socket.send(JSON.stringify({
+                    id: i + 1,
+                    data: {trash: 'trash'}
+                }))
+            }
         }, 1000)
 
         callback(id)
@@ -63,8 +66,9 @@ function createServer(callback) {
 }
 
 createServer(function(serverId) {
-    createClient(serverId)
-    createClient(serverId)
+    for (var i = 0; i < clients; i++) {
+        createClient(serverId)
+    }
 })
 
 </script>

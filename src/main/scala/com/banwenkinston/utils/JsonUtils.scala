@@ -1,4 +1,4 @@
-package com.bankwenkinston.wallboard
+package com.banwenkinston.utils
 
 import org.json4s.JString
 import org.json4s.JsonAST._

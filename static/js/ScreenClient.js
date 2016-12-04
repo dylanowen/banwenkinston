@@ -6,7 +6,7 @@ class ScreenClient {
 
   connect() {
     console.log("Initializing ScreenClient");
-    this.socket = new WebSocket(getWebSocketBase() + 'ws?type=client&serverId=' + serverId);
+    this.socket = new WebSocket(getWebSocketBase() + 'servers/' + serverId, 'client');
     this.socket.onopen = () => {
       //let packet = new Packet({type: Packet.FROM_CLIENT, client: this.user, message: new Message("connect")});
       //this.socket.send(JSON.stringify(packet));
