@@ -5,14 +5,10 @@ import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
 import akka.NotUsed
 import akka.event.LoggingAdapter
 import akka.http.scaladsl.model.ws.Message
-import akka.stream.{FlowShape, Graph, Materializer}
+import akka.stream.Materializer
 import akka.stream.scaladsl.{BroadcastHub, Flow, MergeHub, Sink, Source}
+import com.banwenkinston.streams.FlowUtils._
 import com.banwenkinston.utils.UniqueIds
-import FlowUtils._
-
-import scala.collection.concurrent.TrieMap
-import scala.collection.immutable.HashMap
-import scala.collection.mutable
 
 /**
   * TODO add description
@@ -27,11 +23,15 @@ class GameRouter(implicit materializer: Materializer, log: LoggingAdapter) {
   /**
     * creates a flow for a server web socket connection
     */
-  def createServerFlow: Flow[Message, Message, Any] = {
-    val serverSource: Source[Message, Sink[Message, NotUsed]] = MergeHub.source[Message]
-    val serverSink: Sink[Message, Source[Message, NotUsed]] = BroadcastHub.sink[Message]
+  def createWallboardServerFlow: Flow[Message, Message, Any] = {
+    val serverSource: Source[Message, Sink[Message, NotUsed]] = MergeHub.source[Message].named("fromServerSource")
+    val serverSink: Sink[Message, Source[Message, NotUsed]] = BroadcastHub.sink[Message].named("toServerSink")
 
-    Flow.fromSinkAndSourceMat(serverSink, serverSource)(registerUniqueServer).debug
+    Flow.fromSinkAndSourceMat(serverSink, serverSource)((source: Source[Message, NotUsed], sink: Sink[Message, NotUsed]) => {
+      registerServer((id: String) => {
+        new WallboardServer(id, sink, source)
+      })
+    }).debug
   }
 
   def createClientFlow(server: Server): Flow[Message, Message, Any] = {
@@ -42,7 +42,7 @@ class GameRouter(implicit materializer: Materializer, log: LoggingAdapter) {
 
   //def deleteServer(id: String): Unit = this.servers.remove(id)
 
-  private def registerUniqueServer(source: Source[Message, NotUsed], sink: Sink[Message, NotUsed]): Server = {
+  def registerServer(createServer: (String) => Server): Server = {
     var server: Server = null
     var foundUniqueId: Boolean = false
     // loop trying to find a unique id, once we find one hold our spot with a placeholder
@@ -52,7 +52,7 @@ class GameRouter(implicit materializer: Materializer, log: LoggingAdapter) {
         foundUniqueId = true
         log.info("Server: " + uniqueId + " connected")
 
-        new WallboardServer(uniqueId, sink, source)
+        createServer(uniqueId)
       })
     } while(!foundUniqueId)
 

@@ -20,24 +20,22 @@ class WallboardServer(id: String, override val sink: Sink[Message, NotUsed], val
 
   override def getId: AnyVal = id.asInstanceOf[AnyVal]
 
-  def registerClient(): Flow[Message, Message, Any] = {
-    val clientId: Int = getNextClientId
-    val clientSource: Source[Message, Sink[Message, NotUsed]] = MergeHub.source[Message]
+  override def registerClient(clientId: Int, callback: (Client) => Unit): Flow[Message, Message, Any] = {
+    val clientSource: Source[Message, Sink[Message, NotUsed]] = MergeHub.source[Message].named("clientInput")
 
     // attach the client to the server
     val graph = Fusing.aggressive(getClientMessageWrapperFlow(clientId)
       .via(Flow.fromSinkAndSourceMat(this.sink, clientSource) {
         (_, clientSink) => {
           val client: Client = new Client(clientId, clientSink)
-          this.clients.put(clientId, client)
+
+          callback(client)
 
           // attach the server to the client
           this.source.via(client.getInputGraph).to(clientSink).run()
 
           // let the server know the client exists
           this.sendMessage(ClientConnected(clientId))
-
-          log.info("Client: " + this.id + "->" + clientId + " connected")
         }
       }))
 

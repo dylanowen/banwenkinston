@@ -8,6 +8,7 @@ import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.http.scaladsl.server.Directives.{encodeResponse, _}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Sink, Source}
+import com.banwankinston.test.MyMessageOption
 import com.banwenkinston.streams.{GameRouter, Server}
 
 import scala.concurrent.ExecutionContext
@@ -40,9 +41,9 @@ object Main {
     val route: Flow[HttpRequest, HttpResponse, Any] =
       pathPrefix("servers") {
         pathEndOrSingleSlash {
-          handleWebSocketMessagesForProtocol(gameRouter.createServerFlow, "server")
+          handleWebSocketMessagesForProtocol(gameRouter.createWallboardServerFlow, "server")
         } ~
-        path(Segment) { (serverId) =>
+        path(Segment) { (serverId: String) =>
           val maybeServer: Option[Server] = gameRouter.getServer(serverId)
           if (maybeServer.isDefined) {
             handleWebSocketMessagesForProtocol(gameRouter.createClientFlow(maybeServer.get), "client")
