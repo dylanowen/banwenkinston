@@ -13,7 +13,7 @@ package api {
       def _type: String
     }
 
-    case class Welcome(message: String, id: AnyVal, _type: String = "welcome") extends Packet
+    case class Welcome(message: String, id: String, _type: String = "welcome") extends Packet
 
     // Router to Server
     case class ClientWrapper(id: Int, message: AnyRef, _type: String = "fromClient") extends Packet

@@ -7,7 +7,7 @@ function getWebSocketBase() {
     } else {
         protocol = "ws:";
     }
-    return protocol + "//" + loc.host + "/";
+    return protocol + "//" + loc.host + "/wallboard/";
 }
 
 class Message {

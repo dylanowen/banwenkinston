@@ -4,12 +4,12 @@ import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.ws.{BinaryMessage, Message, TextMessage}
 import akka.http.scaladsl.server.Directives.{encodeResponse, _}
+import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Flow, Sink, Source}
-import com.banwankinston.test.MyMessageOption
-import com.banwenkinston.streams.{GameRouter, Server}
+import akka.stream.scaladsl.Flow
+import com.banwenkinston.core.{GameRouter, Server}
+import com.banwenkinston.wallboard.WallboardRouter
 
 import scala.concurrent.ExecutionContext
 import scala.io.StdIn
@@ -36,23 +36,34 @@ object Main {
     // needed for the future flatMap/onComplete in the end
     implicit val executionContext: ExecutionContext = system.dispatcher
 
-    val gameRouter: GameRouter = new GameRouter()
+    val wallboardRouter: WallboardRouter = new WallboardRouter()
+    val gameRouters: Array[GameRouter] = Array(
+      wallboardRouter
+    )
 
-    val route: Flow[HttpRequest, HttpResponse, Any] =
-      pathPrefix("servers") {
-        pathEndOrSingleSlash {
-          handleWebSocketMessagesForProtocol(gameRouter.createWallboardServerFlow, "server")
-        } ~
-        path(Segment) { (serverId: String) =>
-          val maybeServer: Option[Server] = gameRouter.getServer(serverId)
-          if (maybeServer.isDefined) {
-            handleWebSocketMessagesForProtocol(gameRouter.createClientFlow(maybeServer.get), "client")
-          }
-          else {
-            complete(notFound)
+    val gameRoutes: Route = gameRouters.map((gameRouter: GameRouter) => {
+      pathPrefix(gameRouter.name) {
+        pathPrefix("servers") {
+          path(Segment) { (serverId: String) =>
+            val maybeServer: Option[Server] = gameRouter.getServer(serverId)
+            if (maybeServer.isDefined) {
+              handleWebSocketMessagesForProtocol(maybeServer.get.registerClient(), "client")
+            }
+            else {
+              complete(notFound)
+            }
           }
         }
-      } ~ encodeResponse {
+      }
+    }).reduce(_ ~ _)
+
+    val route: Flow[HttpRequest, HttpResponse, Any] =
+      // wallboard router is special
+      path(wallboardRouter.name / "servers") {
+        handleWebSocketMessagesForProtocol(wallboardRouter.createServerFlow(), "server")
+      } ~
+      gameRoutes ~
+      encodeResponse {
         getFromDirectory(staticRoot)
       }
 

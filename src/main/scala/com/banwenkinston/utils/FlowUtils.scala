@@ -1,11 +1,11 @@
-package com.banwenkinston.streams
+package com.banwenkinston.utils
 
 import akka.Done
 import akka.event.LoggingAdapter
 import akka.http.scaladsl.model.ws.Message
-import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 import akka.stream.scaladsl.Flow
 import akka.stream.stage.{GraphStage, GraphStageLogic, InHandler, OutHandler}
+import akka.stream.{Attributes, FlowShape, Inlet, Outlet}
 
 import scala.util.{Failure, Success, Try}
 
@@ -17,16 +17,17 @@ import scala.util.{Failure, Success, Try}
   */
 object FlowUtils {
 
-  implicit class DebugFlow(val underlying: Flow[Message, Message, Any]) {
-    def debug(implicit log: LoggingAdapter): Flow[Message, Message, Any] = {
+  implicit class DebugFlow[In, Out](val underlying: Flow[In, Out, Any]) {
+    def debug(implicit log: LoggingAdapter): Flow[In, Out, Any] = {
       if (log.isDebugEnabled) {
-        val debug: Flow[Message, Message, Any] = Flow[Message].map(msg => {
+        // wrap the source and sink in debug flows
+        Flow[In].map(msg => {
+          log.debug(msg.toString)
+          msg
+        }).via(underlying).map(msg => {
           log.debug(msg.toString)
           msg
         })
-
-        // wrap the source and sink in debug flows
-        debug.via(underlying).via(debug)
       }
       else {
         underlying
@@ -34,12 +35,12 @@ object FlowUtils {
     }
   }
 
-  implicit class CompleteFlow(val underlying: Flow[Message, Message, Any]) extends AnyVal {
-    def onComplete(callback: (Try[Done]) => Unit): Flow[Message, Message, Any] = {
-      Flow.fromGraph(new GraphStage[FlowShape[Message, Message]] {
-        val in: Inlet[Message] = Inlet[Message]("in")
-        val out: Outlet[Message] = Outlet[Message]("out")
-        override val shape: FlowShape[Message, Message] = FlowShape.of(in, out)
+  implicit class CompleteFlow[In, Out](val underlying: Flow[In, Out, Any]) extends AnyVal {
+    def onComplete(callback: (Try[Done]) => Unit): Flow[In, Out, Any] = {
+      this.underlying.via(new GraphStage[FlowShape[Out, Out]] {
+        val in: Inlet[Out] = Inlet[Out]("in")
+        val out: Outlet[Out] = Outlet[Out]("out")
+        override val shape: FlowShape[Out, Out] = FlowShape.of(in, out)
 
         override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
         // basically identity stage

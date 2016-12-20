@@ -4,7 +4,7 @@ import akka.event.LoggingAdapter
 import akka.http.scaladsl.model.ws.Message
 import akka.stream.Materializer
 import akka.stream.scaladsl.Flow
-import com.banwenkinston.streams.{Client, Server}
+import com.banwenkinston.core.{Client, Server}
 
 /**
   * TODO add description
@@ -15,6 +15,7 @@ import com.banwenkinston.streams.{Client, Server}
 object SnakeServer {
 
 }
+/*
 class SnakeServer(id: String)
                  (implicit override val materializer: Materializer, override val log: LoggingAdapter) extends Server(id) {
 
@@ -22,3 +23,4 @@ class SnakeServer(id: String)
     null
   }
 }
+*/

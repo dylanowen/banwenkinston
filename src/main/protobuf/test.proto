@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package com.banwankinston;
+
+message MyMessageOption {
+    int32 priority = 1;
+}

@@ -1,0 +1,188 @@
+Kevin Chan [10:05 AM]
+cool! you now have to configure it with an autoscale group
+
+[10:05]
+how are you going to handle the spikes in game traffic!
+
+[10:05]
+your ec2 instance is going to fall over
+
+Dylan Owen [10:06 AM]
+my idea is that each "game" will allow a certain number of people
+
+Kevin Chan [10:06 AM]
+horizontal scaling!
+
+Dylan Owen [10:06 AM]
+so I'll just run as many games as I can on a server
+
+[10:06]
+exactly!
+
+Kevin Chan [10:06 AM]
+use docker on ECS
+
+Dylan Owen [10:06 AM]
+it can scale forever!!!!!
+
+Kevin Chan [10:06 AM]
+it needs to scale automatically
+
+Dylan Owen [10:06 AM]
+yeah absolutely
+
+Kevin Chan [10:06 AM]
+elastically
+
+Dylan Owen [10:06 AM]
+when all game rooms are full create more
+
+[10:06]
+and then keeping track of game rooms should be trivial
+
+Kevin Chan [10:06 AM]
+yes but the question is how are you going to accomplish that?
+
+[10:07]
+you can go bare EC2, or you can containerize it and use EC2 Container Service
+
+Dylan Owen [10:07 AM]
+I'm not really sure...
+
+Kevin Chan [10:07 AM]
+or you can try Elastic Bean Stalk
+
+Dylan Owen [10:07 AM]
+could I hit an api to get my available containers? or something?
+
+[10:08]
+and then ask each one for running games
+
+Kevin Chan [10:08 AM]
+https://aws.amazon.com/blogs/compute/microservice-delivery-with-amazon-ecs-and-application-load-balancers/
+
+Dylan Owen [10:08 AM]
+that operation doesn't have to be perfect it could lag
+
+[10:08]
+I was looking at this pusher.com and it's basically what I've coded up lol
+
+[10:08]
+without an api or websockets fallback
+
+Kevin Chan [10:09 AM]
+https://aws.amazon.com/autoscaling/
+
+[10:09]
+akka supports clustering
+
+Dylan Owen [10:09 AM]
+yeah I was thinking that too
+
+Kevin Chan [10:09 AM]
+you should be able to create a VPC for your EC2 autoscaling group
+
+Dylan Owen [10:10 AM]
+make my stuff one massive cluster
+
+Kevin Chan [10:10 AM]
+cluster all your instances, i think they can just discover each other
+
+[10:10]
+i think there may be some manually configuration, when i played with it last
+
+[10:10]
+you have to set like a list of hosts
+
+Dylan Owen [10:10 AM]
+manual :n: :stuck_out_tongue:
+
+Kevin Chan [10:10 AM]
+http://doc.akka.io/docs/akka/snapshot/java/cluster-usage.html
+
+Dylan Owen [10:10 AM]
+but auto discovery would be awesome. the client could like have some fallback plans if it loses contact with the game instance
+
+Kevin Chan [10:11 AM]
+i think you  need like... a set number of seed nodes
+
+[10:11]
+that's not hard
+
+Dylan Owen [10:11 AM]
+direct the user to the main server discovery page
+
+Kevin Chan [10:11 AM]
+just say
+
+[10:11]
+3...
+
+[10:11]
+like you have to have 3 static nodes
+
+[10:11]
+which you know the ips
+
+[10:11]
+so you can list them in all the akka configs as the seed nodes
+
+[10:11]
+then it should discover everyone else
+
+[10:11]
+as long as 1 of those 3 nodes are alive
+
+Dylan Owen [10:12 AM]
+oh that should be perfect
+
+[10:12]
+those 3 nodes could probably be the main website
+
+Kevin Chan [10:12 AM]
+dude, building game stuff on AWS is all the rage now
+
+Dylan Owen [10:12 AM]
+yeah?
+
+[10:12]
+I think it'd be really fun
+
+Kevin Chan [10:13 AM]
+they had a whole game track at re:invent
+
+[10:13]
+https://www.youtube.com/watch?v=JT2xOYOdUvM
+ YouTube Amazon Web Services
+AWS re:Invent 2015 | (GAM401) Build a Serverless Mobile Game with Amazon Cognito, Lambda & DynamoDB
+
+
+Dylan Owen [10:14 AM]
+back in college I made re-made this game: https://www.youtube.com/watch?v=KE2XtQaMb5I on the iphone
+ YouTube Hadley Canine
+Liero gameplay
+
+
+Kevin Chan [10:14 AM]
+that's last years
+
+[10:14]
+2015
+
+Dylan Owen [10:14 AM]
+and I think it'd be awesome in a large room of other players
+
+Kevin Chan [10:14 AM]
+anyways!!! lots of game company's are using AWS due to ability to handle the bursts of load (edited)
+
+[10:14]
+needed for gaming
+
+[10:14]
+and the large amounts of streaming data
+
+Dylan Owen [10:15 AM]
+and I can have the rooms hosted near the players worldwide :slightly_smiling_face:
+
+Kevin Chan [10:15 AM]
+https://aws.amazon.com/gaming/
